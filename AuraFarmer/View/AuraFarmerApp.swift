@@ -11,7 +11,8 @@ import SwiftUI
 struct AuraFarmerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+//            ContentView()
+            MaskPreviewView()
         }
     }
 }
