@@ -22,15 +22,17 @@ class AuraCounter {
     
     private let sequenceHandler = VNSequenceRequestHandler()
     
-    private var internalMovement: Int = 0
-    
     private var lastHighArm: ArmState = .neutral
     
     private var heightTreshold: CGFloat = 0.05
     
+    var internalMovement: Int = 0
+    
     var skelePoints: [VNHumanBodyPoseObservation.JointName: CGPoint] = [:]
     
     var audioPlayer = AVAudioPlayer()
+    
+    let soundURL = Bundle.main.url(forResource: "faaah", withExtension: "mp3")
     
     // Função que encontra pontos no frame que recebe do CameraManager
     func processFrame(_ pixelBuffer: CVPixelBuffer) {
@@ -129,17 +131,13 @@ class AuraCounter {
         }
     }
     
-    private func updateAura() {
+    func updateAura() {
         aura = internalMovement/2
     }
     
     func playSound() {
-        guard let soundURL = Bundle.main.url(forResource: "faaah", withExtension: "mp3") else {
-          return
-        }
-
         do {
-            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+            audioPlayer = try AVAudioPlayer(contentsOf: soundURL!)
         } catch {
           print("Failed to load the sound: \(error)")
         }

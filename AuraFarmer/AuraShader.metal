@@ -87,7 +87,7 @@ float generateNoise(
     
     // Aura do anjo caído
     float redNoise = generateNoise(uv, value, amplitude * 2, frequency * 3, phase * 2, octaves * 2);
-    float evilEnergy = min(1.0, pow(aura/100.0, 2.0));
+    float evilEnergy = min(1.0, pow(aura/67.0, 2.0));
     
     // "Pulsação" da aura do bem
     float auraOpacity = min(1.0, aura/10.0);

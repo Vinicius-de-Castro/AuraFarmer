@@ -29,6 +29,7 @@ struct ContentView: View {
                     .scaledToFill()
                     .edgesIgnoringSafeArea(.all)
                     .scaleEffect(x: -1, y: 1)
+                    .grayscale(min(1, Double(cameraManager.auraCounter.aura)/67.0))
                 
                 
                 if debugMode {
@@ -156,7 +157,8 @@ struct ContentView: View {
                         Spacer()
                         
                         Button("Get aura") {
-                            cameraManager.auraCounter.aura += 1
+                            cameraManager.auraCounter.internalMovement += 2
+                            cameraManager.auraCounter.updateAura()
                         }
                         .buttonRepeatBehavior(.enabled)
                         
