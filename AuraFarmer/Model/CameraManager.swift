@@ -66,7 +66,7 @@ class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    private func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) async {
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
@@ -78,9 +78,11 @@ class CameraManager: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         
         auraCounter.processFrame(pixelBuffer)
         
-        if let mask = await auraCounter.processMask(pixelBuffer) {
-            DispatchQueue.main.async {
-                self.currentMask = self.context.createCGImage(mask, from: mask.extent)
+        Task {
+            if let mask = await auraCounter.processMask(pixelBuffer) {
+                DispatchQueue.main.async {
+                    self.currentMask = self.context.createCGImage(mask, from: mask.extent)
+                }
             }
         }
     }

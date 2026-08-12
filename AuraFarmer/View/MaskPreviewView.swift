@@ -21,6 +21,7 @@ struct MaskPreviewView: View {
 //            Color.green
             
             if let mask = cameraManager.currentMask, let frame = cameraManager.currentFrame {
+                
                 // Ambas as imagens são convertidas em CIImage (creio que exista maneira melhor)
                 let cIFrame = CIImage(cgImage: frame)
                 let cIMask = CIImage(cgImage: mask)
@@ -37,8 +38,9 @@ struct MaskPreviewView: View {
                 let maskingFilter = CIFilter(name: "CIBlendWithMask", parameters: [
                     kCIInputImageKey: cIFrame,
                     kCIInputBackgroundImageKey: transparentBG,
-                    kCIInputMaskImageKey: cIMask
+                    kCIInputMaskImageKey: scaledMask
                 ])
+                
                 
                 HStack {
                     

@@ -74,20 +74,17 @@ class AuraCounter {
         }
         catch {
             print("Erro ao processar a máscara: \(error)")
+            return nil
         }
         return nil
     }
-//    
-//    private func filterMask(_ image: CIImage) -> CIImage {
-//        
-//    }
     
     private func analyseBodyPose(_ observation: VNHumanBodyPoseObservation) {
         do {
             let rightWrist = try observation.recognizedPoint(.rightWrist)
             let leftWrist = try observation.recognizedPoint(.leftWrist)
             
-            print("Certeza - Dir: \(rightWrist.confidence) | Esq: \(leftWrist.confidence)")
+//            print("Certeza - Dir: \(rightWrist.confidence) | Esq: \(leftWrist.confidence)")
             
             guard rightWrist.confidence > 0.3 && leftWrist.confidence > 0.3 else {
                 return

@@ -5,9 +5,10 @@
 //  Created by Vinicius Rodrigues de Castro on 06/08/26.
 //
 
-import SwiftUI
-import AVFoundation
 import Vision
+import SwiftUI
+import Foundation
+import AVFoundation
 
 struct ContentView: View {
     
@@ -19,12 +20,7 @@ struct ContentView: View {
     
     var body: some View {
         
-        let skelePoints = cameraManager.auraCounter.skelePoints
-        let leftWristRaw = skelePoints[.leftWrist]
-        let rightWristRaw = skelePoints[.rightWrist]
-        let neckRaw = skelePoints[.neck]
-        let leftHipRaw = skelePoints[.leftHip]
-        let rightHipRaw = skelePoints[.rightHip]
+//        let skelePoints = cameraManager.auraCounter.skelePoints
         
         ZStack(alignment: .center) {
             if let frame = cameraManager.currentFrame {
@@ -84,13 +80,68 @@ struct ContentView: View {
                 }
                 
                 if cameraManager.auraCounter.aura >= 0 {
-                    Rectangle()
-                        .fill(.black.opacity(0.01))
-//                        .visualEffect { content, proxy in
-//                            // Aqui virão os shaders
-//                        }
-                        .edgesIgnoringSafeArea(.all)
-                        .scaleEffect(x: -1, y: 1)
+                    if let frame = cameraManager.currentFrame, let mask = cameraManager.currentMask {
+                        
+                        // Ambas as imagens são convertidas em CIImage (creio que exista maneira melhor)
+                        let cIFrame = CIImage(cgImage: frame)
+                        let cIMask = CIImage(cgImage: mask)
+                        
+                        // Essa transformação garante que ambas terão as mesmas dimensões, independente
+                        // de otimizações do Vision
+                        let scaleX = cIFrame.extent.size.width / cIMask.extent.size.width
+                        let scaleY = cIFrame.extent.size.height / cIMask.extent.size.height
+                        let scaledMask = cIMask.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+                        
+                        // Essa transformação "aumenta a aura"
+                        let expandedMask = scaledMask.applyingFilter("CIMorphologyMaximum", parameters: [
+                            kCIInputImageKey: scaledMask,
+                            kCIInputRadiusKey:  log2(Double(cameraManager.auraCounter.aura)) * 10
+                        ])
+                        
+                        // Essa transformação converte a máscara em preto e branco em uma máscara de alfa propriamente dita
+                        let alphaMask = expandedMask.applyingFilter("CIColorMatrix", parameters: [
+                            "inputRVector": CIVector(x:0, y:0, z:0, w:1),
+                            "inputGVector": CIVector(x:0, y:0, z:0, w:1),
+                            "inputBVector": CIVector(x:0, y:0, z:0, w:1),
+                            "inputAVector": CIVector(x:1, y:1, z:1, w:0),
+                            "inputBiasVector": CIVector(x:0, y:0, z:0, w:0)
+                        ])
+                        
+                        let renderedAlphaMask = cameraManager.renderCIImage(alphaMask)
+                        
+                        Rectangle()
+                            .fill(.white.opacity(0.01))
+                            .visualEffect { content, proxy in
+                                content.colorEffect(
+                                    ShaderLibrary.auraEffect(
+                                        .float2(proxy.size),
+                                        .float(startDate.timeIntervalSinceNow),
+                                        .float(Float(cameraManager.auraCounter.aura))
+//                                        .image(Image(decorative: cgImage, scale: 1.0))
+                                    )
+                                )
+                            }
+                            .edgesIgnoringSafeArea(.all)
+                            .scaleEffect(x: -1, y: 1)
+                            .mask {
+                                Image(decorative: renderedAlphaMask!, scale: 1.0)
+                                    .resizable()
+                                    .edgesIgnoringSafeArea(.all)
+                                    .scaleEffect(x: -1, y: 1)
+                                    .blur(radius: CGFloat(log2(Double(cameraManager.auraCounter.aura))) * 5 + 1)
+                                    .distortionEffect(ShaderLibrary.waveDistortion(
+                                        .float(startDate.timeIntervalSinceNow * Double(cameraManager.auraCounter.aura))),
+                                                      maxSampleOffset: CGSize(width: 0, height: 20))
+                            }
+                            .blendMode(.plusLighter)
+                            .opacity(min(1, Double(cameraManager.auraCounter.aura)/10))
+                        
+//                        Image(decorative: renderedAlphaMask!, scale: 1.0)
+//                            .resizable()
+//                            .edgesIgnoringSafeArea(.all)
+//                            .scaleEffect(x: -1, y: 1)
+//                            .opacity(0.5)
+                    }
                 }
                 
                 VStack{
@@ -101,6 +152,13 @@ struct ContentView: View {
                             .padding()
                             .background(Color.black.opacity(0.5))
                             .cornerRadius(10)
+                        
+                        Spacer()
+                        
+                        Button("Get aura") {
+                            cameraManager.auraCounter.aura += 1
+                        }
+                        .buttonRepeatBehavior(.enabled)
                         
                         Spacer()
                         
