@@ -19,9 +19,6 @@ struct ContentView: View {
     let startDate = Date()
     
     var body: some View {
-        
-//        let skelePoints = cameraManager.auraCounter.skelePoints
-        
         ZStack(alignment: .center) {
             if let frame = cameraManager.currentFrame {
                 Image(frame, scale: 1.0, orientation: .up, label: Text("Camera Feed"))
@@ -30,6 +27,8 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                     .scaleEffect(x: -1, y: 1)
                     .grayscale(min(1, Double(cameraManager.auraCounter.aura)/67.0))
+                    .contrast(1 + 0.5 * Double(cameraManager.auraCounter.aura)/67.0)
+                    .brightness(-0.05 * Double(cameraManager.auraCounter.aura)/67.0)
                 
                 
                 if debugMode {
@@ -80,7 +79,7 @@ struct ContentView: View {
                     .scaleEffect(x: -1, y: 1)
                 }
                 
-                if cameraManager.auraCounter.aura >= 0 {
+                if cameraManager.auraCounter.aura > 0 {
                     if let frame = cameraManager.currentFrame, let mask = cameraManager.currentMask {
                         
                         // Ambas as imagens são convertidas em CIImage (creio que exista maneira melhor)
@@ -181,6 +180,14 @@ struct ContentView: View {
             else {
                 Color.black.edgesIgnoringSafeArea(.all)
                 ProgressView("Ligando câmera...")
+            }
+        }
+        .onAppear {
+            do {
+                cameraManager.auraCounter.audioPlayer = try AVAudioPlayer(contentsOf: cameraManager.auraCounter.soundURL!)
+            }
+            catch {
+                return
             }
         }
     }

@@ -57,8 +57,8 @@ class AuraCounter {
             print("Erro ao processar o Vision: \(error)")
         }
         
-        // Marmotinhas
-        if aura % 10 == 0 {
+//         Marmotinhas
+        if (aura % 67 == 0 && aura != 0) {
             playSound()
         }
     }
@@ -136,11 +136,11 @@ class AuraCounter {
     }
     
     func playSound() {
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: soundURL!)
-        } catch {
-          print("Failed to load the sound: \(error)")
-        }
+//        do {
+//            audioPlayer = try AVAudioPlayer(contentsOf: soundURL!)
+//        } catch {
+//          print("Failed to load the sound: \(error)")
+//        }
         audioPlayer.play()
       }
     
